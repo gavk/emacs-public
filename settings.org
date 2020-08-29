@@ -1,0 +1,120 @@
+* TODO Мой конфиг Emacs в формате org-mode                            :emacs:
+
+** Описание
+
+*** Как подключить
+
+** Базовая конфигурация
+
+Все переменные здесь лексически локальны:
+
+#+begin_src emacs-lisp
+(setq-local lexical-binding t)
+#+end_src
+
+*** Менеджер пакетов и зависимостей
+
+**** Источники для установки пакетов и их приоритеты
+
+Дело в том, что MELPA Stable содержит не очень свежие версии, поэтому иногда лучше ставить пакеты из основного репозитория:
+
+#+begin_src emacs-lisp
+(add-to-list 'package-archives '("melpa-stable" . "https://stable.melpa.org/packages/"))
+(add-to-list 'package-archives '("melpa"        . "https://melpa.org/packages/"))
+(add-to-list 'package-archives '("org"          . "https://orgmode.org/elpa/"))
+(setf (cdr (assoc "gnu" package-archives)) "https://elpa.gnu.org/packages/")
+#+end_src
+
+Приоритеты репозиториев
+
+#+begin_src emacs-lisp
+(setq package-archive-priorities
+      '(("melpa-stable" . 5)
+        ("gnu" . 5)
+        ("melpa" . 10)))
+(setq package-enable-at-startup nil)
+#+end_src
+
+Если пакет use-package не установлен, его нужно скачать и установить:
+
+#+begin_src emacs-lisp
+(unless (package-installed-p 'use-package)
+  (message "EMACS install use-package.el")
+  (package-refresh-contents)
+  (package-install 'use-package))
+#+end_src
+
+**** Запуск и настройка менеджера пакетов
+
+(require 'use-package)
+(setq use-package-always-ensure t)
+
+**** Больше дебага для use-package
+
+#+begin_src emacs-lisp
+(setq use-package-verbose t)
+#+end_src
+
+*** Настройки ввода
+
+Создаем личную карту аккордов:
+
+#+begin_src emacs-lisp
+(defvar my-bindings-map (make-keymap)
+  "Мои личные горячие клавиши.")
+
+(define-minor-mode my-bindings-mode
+  "Режим для подключения моих кнопок."
+  t nil my-bindings-map)
+#+end_src
+
+**** TODO Разобраться с этим
+
+#+begin_src emacs-lisp
+(define-key my-bindings-map (kbd "C-c <up>")    'windmove-up)
+(define-key my-bindings-map (kbd "C-c <down>")  'windmove-down)
+(define-key my-bindings-map (kbd "C-c <left>")  'windmove-left)
+(define-key my-bindings-map (kbd "C-c <right>") 'windmove-right)
+(define-key my-bindings-map [C-return] (lambda () (interactive) (point-to-register 'r)))
+(define-key my-bindings-map [M-return] (lambda () (interactive) (jump-to-register 'r)))
+#+end_src
+
+*** TODO Expand region
+
+По нажатию ~C-=~ выбранный регион семантически/синтаксически расширяется:
+
+#+begin_src emacs-lisp
+(use-package expand-region
+  :bind
+    (:map my-bindings-map
+      ("C-=" . er/expand-region)))
+#+end_src
+
+** Внешний вид
+
+Показывать в минибуфере позицию в строке:
+
+#+begin_src emacs-lisp
+(column-number-mode)
+#+end_src
+
+*** TODO Imenu
+
+#+begin_src emacs-lisp
+(use-package imenu
+  :bind 
+  (:map my-bindings-map
+  ("M-'" . imenu-list-smart-toggle)))
+#+end_src
+
+*** Выключить menu-bar, показывать по F10
+
+#+begin_src emacs-lisp
+(menu-bar-mode -1)
+
+(defun my-toggle-menu-bar ()
+  (interactive)
+  (toggle-menu-bar-mode-from-frame 'toggle))
+
+(define-key my-bindings-map (kbd "<f10>") 'my-toggle-menu-bar)
+#+end_src
