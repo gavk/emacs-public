@@ -45,9 +45,10 @@
 #+end_src
 
 **** Запуск и настройка менеджера пакетов
-
+#+begin_src emacs-lisp
 (require 'use-package)
 (setq use-package-always-ensure t)
+#+end_src
 
 **** Больше дебага для use-package
 
@@ -86,16 +87,71 @@
 #+begin_src emacs-lisp
 (use-package expand-region
   :bind
-    (:map my-bindings-map
-      ("C-=" . er/expand-region)))
+  (:map my-bindings-map
+        ("C-=" . er/expand-region)))
 #+end_src
 
 ** Внешний вид
+
+*** TODO Золотое сечение для расположения окон:
+
+#+begin_src emacs-lisp
+(use-package zoom
+  :commands zoom-mode
+  :config
+  (setq zoom-ignored-major-modes '(gnus-summary-mode))
+  (setq zoom-size '(0.618 . 0.618)))
+(zoom-mode t)
+#+end_src
+
+*** TODO Удобное хождение по окнам:
+
+#+begin_src emacs-lisp
+(use-package ace-window
+  :defer t
+  :bind (:map my-bindings-map
+              ("M-o" . ace-window)))
+#+end_src
+
+*** TODO Подсказка по вводимым кнопкам. Отображать с задержкой в 1 секунду:
+
+#+begin_src emacs-lisp
+(use-package
+  which-key
+  :config 
+  (setq which-key-idle-delay 1)
+  (which-key-mode))
+#+end_src
+
+*** Некоторые оптимизации:
+
+#+begin_src emacs-lisp
+(setq auto-revert-interval 1            ; Refresh buffers fast
+      custom-file (make-temp-file "")   ; Discard customization's
+;  default-input-method "TeX"           ; Use TeX when toggling input method
+      echo-keystrokes 0.1               ; Show keystrokes asap
+      inhibit-startup-message t         ; No splash screen please
+      initial-scratch-message nil       ; Clean scratch buffer
+      sentence-end-double-space nil)    ; No double space
+#+end_src
 
 Показывать в минибуфере позицию в строке:
 
 #+begin_src emacs-lisp
 (column-number-mode)
+#+end_src
+
+Перенос строк по словам:
+
+#+begin_src emacs-lisp
+(setq word-wrap          t)
+(global-visual-line-mode t)
+#+end_src
+
+*** Настройка темы
+
+#+begin_src emacs-lisp
+(load-theme 'leuven t)
 #+end_src
 
 *** TODO Imenu
@@ -104,10 +160,10 @@
 (use-package imenu
   :bind 
   (:map my-bindings-map
-  ("M-'" . imenu-list-smart-toggle)))
+        ("M-'" . imenu-list-smart-toggle)))
 #+end_src
 
-*** Выключить menu-bar, показывать по F10
+*** Выключить menu-bar, показывать по F11
 
 #+begin_src emacs-lisp
 (menu-bar-mode -1)
@@ -116,5 +172,991 @@
   (interactive)
   (toggle-menu-bar-mode-from-frame 'toggle))
 
-(define-key my-bindings-map (kbd "<f10>") 'my-toggle-menu-bar)
+(define-key my-bindings-map (kbd "<f11>") 'my-toggle-menu-bar)
 #+end_src
+
+** Поведение
+
+ Бэкапы не нужны:
+
+ #+BEGIN_SRC emacs-lisp
+ (setq backup-inhibited t)
+ #+END_SRC
+
+ Шаг отступа по умолчанию 2 символа:
+
+ #+BEGIN_SRC emacs-lisp
+ (setq-default tab-width 2)
+ (setq-default standart-indent 2)
+ #+END_SRC
+
+ Я люблю ограничивать область видимости до выбранного региона, не надо меня ворнить:
+
+ #+BEGIN_SRC emacs-lisp
+ (put 'narrow-to-region 'disabled nil)
+ #+END_SRC
+
+ История открытых файлов:
+
+ #+BEGIN_SRC emacs-lisp
+ (use-package
+   recentf
+   :config
+   (setq recentf-max-saved-items 100)
+   (setq recentf-max-menu-items 25)
+   (recentf-mode 1))
+#+end_src
+
+ Помнить позиции в файлах:
+
+ #+BEGIN_SRC emacs-lisp
+ (save-place-mode 1)
+ #+END_SRC
+
+ Помнить историю команд минибуфера:
+
+ #+BEGIN_SRC emacs-lisp
+ (savehist-mode 1)
+ #+END_SRC
+
+Схлопывание длинных комбинаций клавиш (C-c j C-c j C-c k C-c k M-3 C-c j M-5 C-c k эквивалентно C-c jjkk3j5k):
+
+#+BEGIN_SRC emacs-lisp
+(use-package hydra)
+#+END_SRC
+
+# Браузер по умолчанию — chromium:
+#
+# #+BEGIN_SRC emacs-lisp
+# (setq browse-url-browser-function 'browse-url-chromium)
+# #+END_SRC
+#
+
+*** TODO Использовать ivy в качестве движка автодополнения имен буферов, файлов и т.д.
+
+[2019-09-23 Mon] закомментил т.к. тормозит на больших файлах.
+
+# #+BEGIN_SRC emacs-lisp
+# (use-package ivy
+#   :defer 0.1
+#   :diminish
+#   :bind (("C-c C-r" . ivy-resume)
+#          ("C-x B" . ivy-switch-buffer-other-window))
+#   :custom
+#   (ivy-count-format "(%d/%d) ")
+#   (ivy-use-virtual-buffers t)
+#   :config (ivy-mode))
+
+# (use-package counsel
+#   :after ivy
+#   :config (counsel-mode))
+# #+END_SRC
+
+*** TODO Ищем swiper'ом:
+
+[2019-09-23 Mon] закомментил т.к. тормозит на больших файлах.
+
+# #+BEGIN_SRC emacs-lisp
+# (use-package swiper
+#   :after ivy
+#   :bind (("C-s" . swiper)
+#          ("C-r" . swiper)))
+# #+END_SRC
+
+*** Правильный список буферов
+
+[2019-09-23 Mon] закомментил т.к. тормозит на больших файлах.
+
+#     #+BEGIN_SRC emacs-lisp
+# (use-package
+#   ibuffer
+#   :bind (:map my-bindings-map
+#                ("C-x C-b" . ibuffer))
+#   :hook ((ibuffer-mode . hl-line-mode)))
+# #+END_SRC
+
+*** TODO Настройки isearch
+
+У меня плохо прижились стандартные кнопки, слегка переназначил:
+
+#+BEGIN_SRC emacs-lisp
+(define-key isearch-mode-map (kbd "<up>") 'isearch-ring-retreat )
+(define-key isearch-mode-map (kbd "<down>") 'isearch-ring-advance )
+
+(define-key isearch-mode-map (kbd "<left>") 'isearch-repeat-backward)
+(define-key isearch-mode-map (kbd "<right>") 'isearch-repeat-forward)
+
+(define-key minibuffer-local-isearch-map (kbd "<left>") 'isearch-reverse-exit-minibuffer)
+(define-key minibuffer-local-isearch-map (kbd "<right>") 'isearch-forward-exit-minibuffer)
+#+END_SRC
+ 
+** Редактирование
+
+Многострочный режим комментариев по умолчанию
+
+#+BEGIN_SRC emacs-lisp
+(setq comment-style 'multi-line)
+#+END_SRC
+
+У нас не принято разделять предложения двойным пробелом:
+
+#+BEGIN_SRC emacs-lisp
+(setq sentence-end-double-space nil)
+#+END_SRC
+
+Мы презираем табуляцию в отступах:
+
+#+BEGIN_SRC emacs-lisp
+(setq-default indent-tabs-mode nil)
+#+END_SRC
+
+*** Yasnippet: разворачивание сниппетов
+
+#+BEGIN_SRC emacs-lisp
+(use-package yasnippet
+  :ensure t
+  ;:bind
+  ;(:map my-bindings-map
+  ;      ("C-<tab>" . yas-expand))
+  ;; я не люблю, когда по tab-у мне пытаются что-то развернуть
+  ;(:map yas-minor-mode-map
+  ;      ("<tab>" . nil)
+  ;      ("TAB" . nil))
+  :hook ((prog-mode org-mode) . yas-minor-mode)
+  :commands (yas-minor-mode)
+  :after (yasnippet-classic-snippets)
+  :config
+  ;; подключить мой публичный репозиторий сниппетов
+  (add-to-list 'yas-snippet-dirs (expand-file-name "~/.emacs.d/public/yasnippets"))
+  ;; теперь надо всё перечитать
+  (yas-reload-all))
+
+(use-package yasnippet-classic-snippets)
+#+END_SRC
+
+*** Показывать отступы
+
+Отключить режим для файлов больше 100K:
+
+#+BEGIN_SRC emacs-lisp
+(defun my-disable-indent-guide-mode-for-big-buffer ()
+  (when (> (buffer-size) 100000)
+    (progn
+      (message "Buffer is too big, disable guided indent mode")
+      (indent-guide-mode -1))))
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+(use-package
+  indent-guide
+  :hook ((prog-mode . indent-guide-mode)
+         (find-file . my-disable-indent-guide-mode-for-big-buffer))
+  :config
+  (setq indent-guide-char "|")
+  (set-face-foreground 'indent-guide-face "darkgray"))
+ #+END_SRC
+
+*** Умные скобочки
+#+begin_comment
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package
+  smartparens
+   :config
+   ;; Есть баг с electric-parens-mode с cperl, заплатка из https://github.com/syl20bnr/spacemacs/issues/480
+   (with-eval-after-load 'cperl-mode
+         (add-hook 'smartparens-enabled-hook  (lambda () (define-key cperl-mode-map "{" nil)))
+         (add-hook 'smartparens-disabled-hook  (lambda () (define-key cperl-mode-map "{" 'cperl-electric-lbrace))))
+   ;; Включаем глобально
+   (smartparens-global-mode 1))
+#+END_SRC
+#+end_comment
+
+Подсвечивать парную скобку, переходы по ним:
+
+#+BEGIN_SRC emacs-lisp
+(show-paren-mode 1)
+(setq show-paren-delay 0)
+
+(defun match-paren (arg)
+  "Go to the matching paren."
+  (interactive "p")
+  (cond ((looking-at "\\s\(") (forward-list 1) (backward-char 1))
+        ((looking-at "\\s\)") (forward-char 1) (backward-list 1))
+        (t (self-insert-command (or arg 1)))))
+
+(define-key my-bindings-map (kbd "C-`") 'match-paren)
+#+END_SRC
+
+*** Дерево отмены
+
+#+BEGIN_SRC emacs-lisp
+(use-package
+  undo-tree
+  :bind (:map my-bindings-map
+              ("C-x u" . undo-tree-visualize))
+  :config (global-undo-tree-mode 1))
+#+END_SRC
+
+*** Автодополнение
+
+#+BEGIN_SRC emacs-lisp
+(use-package
+  company
+  :hook (prog-mode . company-mode)
+  :config
+  ;; сначала ищем в gtags, а если не нашли — смотрим в abbrev
+  (add-to-list 'company-backends '(company-gtags :with company-dabbrev))
+  ;; по кнопке TAB происходит и дополнение, и выбор варианта
+  ;;   (company-tng-configure-default)
+  (setq company-idle-delay 0.5
+        company-echo-delay 0
+        company-dabbrev-downcase nil
+        company-show-numbers t
+        company-minimum-prefix-length 2
+        company-selection-wrap-around t
+        company-transformers '(company-sort-by-occurrence
+                               company-sort-by-backend-importance)))
+
+(use-package company-box
+  :hook (company-mode . company-box-mode))
+#+END_SRC
+
+**** Автодополнение с неточным совпадением
+
+К сожалению, поддерживает не так много бэкендов company. Я использую только для lisp.
+
+#+BEGIN_SRC emacs-lisp
+(use-package company-flx
+  :demand t
+  :init
+  (company-flx-mode +1))
+#+END_SRC
+
+**** Документация в company
+
+#+BEGIN_SRC emacs-lisp
+(use-package company-quickhelp
+  :ensure t
+  :hook (global-company-mode . company-quickhelp-mode)
+  :commands (company-quickhelp-mode)
+  :defer t
+  :init (add-hook 'global-company-mode-hook #'company-quickhelp-mode))
+#+END_SRC
+
+*** Tramp
+
+#+BEGIN_SRC emacs-lisp
+(use-package
+  tramp
+  :config (setq tramp-use-ssh-controlmaster-options nil))
+#+END_SRC
+
+** Разработка
+
+*** Flycheck
+
+#+BEGIN_SRC emacs-lisp
+(use-package flycheck
+   :config
+   (setq flycheck-idle-change-delay 5)
+   ;; Багфиксы, согласно проблеме https://github.com/flycheck/flycheck/issues/1278:
+   ;; в :preface нельзя определять т.к. :preface обрабатывается до загрузки модуля
+   (advice-add
+    'flycheck-process-send-buffer
+    :override
+    (lambda (process)
+      (condition-case err
+          (save-restriction
+            (widen)
+            (if flycheck-chunked-process-input
+                (flycheck--process-send-buffer-contents-chunked process)
+              (process-send-region process (point-min) (point-max)))
+            (process-send-eof process))
+        (error
+         (let* ((checker (process-get process 'flycheck-checker))
+                (type (flycheck-checker-get checker 'standard-input)))
+           (when (or (not (eq type 'ignore-error)) (process-live-p process))
+             (signal (car err) (cdr err))))))))
+   (flycheck-define-checker perl
+     "A Perl syntax checker using the Perl interpreter.
+
+     See URL `https://www.perl.org'."
+     :command ("perl" "-w" "-c"
+               (option-list "-I" flycheck-perl-include-path)
+               (option-list "-M" flycheck-perl-module-list concat))
+     :standard-input ignore-error
+     :error-patterns
+     ((error line-start (minimal-match (message))
+             " at - line " line
+             (or "." (and ", " (zero-or-more not-newline))) line-end))
+     :modes (perl-mode cperl-mode)
+     :next-checkers (perl-perlcritic))
+   (setq flycheck-global-modes '(not org-mode)
+         flycheck-display-errors-function nil
+         flycheck-display-errors-delay 0
+         ;; Иногда приходится разгребать чуланы с граблями, надо видеть тысячи ошибок в файле
+         flycheck-checker-error-threshold 10000)
+   (global-flycheck-mode))
+#+END_SRC
+
+*** LSP
+
+#+BEGIN_SRC emacs-lisp
+(use-package lsp-mode
+  :after (yasnippet helm-lsp)
+  :commands lsp
+  :config
+  ;(require 'lsp-clients)
+)
+
+(use-package lsp-ui
+  :custom-face
+  (lsp-ui-sideline-code-action ((t (:foreground "green"))))
+  (lsp-ui-sideline-current-symbol ((t (:foreground "orange"))))
+  :preface
+  (defun ladicle/toggle-lsp-ui-doc ()
+    (interactive)
+    (if lsp-ui-doc-mode
+        (progn
+          (lsp-ui-doc-mode -1)
+          (lsp-ui-doc--hide-frame))
+      (lsp-ui-doc-mode 1)))
+  :bind
+  (:map lsp-mode-map
+        ("C-c C-r" . lsp-ui-peek-find-references)
+        ("C-c C-j" . lsp-ui-peek-find-definitions)
+        ("C-c i"   . lsp-ui-peek-find-implementation)
+        ("C-c m"   . lsp-ui-imenu)
+        ("C-c s"   . lsp-ui-sideline-mode)
+        ("C-c d"   . ladicle/toggle-lsp-ui-doc))
+  :custom
+  (lsp-ui-doc-enable nil))
+#+END_SRC
+
+*** Управление проектами
+
+ Подключаем projectile:
+
+ #+BEGIN_SRC emacs-lisp
+   (use-package
+     projectile
+     :bind (:map projectile-mode-map
+                 ("C-c p" . 'projectile-command-map))
+     :config (projectile-mode +1))
+ #+END_SRC
+
+ Подключаем helm к projectile
+
+#+BEGIN_SRC emacs-lisp
+(use-package helm)
+(use-package helm-rg
+;:config
+;  (require 'helm-lib)
+)
+#+END_SRC
+
+ #+BEGIN_SRC emacs-lisp
+ (use-package
+   helm-projectile
+;   :after (projectile helm helm-rg)
+   :config (helm-projectile-on))
+ #+END_SRC
+
+*** Magit
+
+ #+BEGIN_SRC emacs-lisp
+ (use-package
+   magit
+   :bind (:map my-bindings-map
+               ("C-x g" . magit-status)))
+ #+END_SRC
+
+*** Индекс по тэгам
+
+ #+BEGIN_SRC emacs-lisp
+ (use-package ggtags
+   :hook (cperl-mode . ggtags-mode)
+   :config
+   (setq ggtags-sort-by-nearness nil
+         ggtags-navigation-mode-lighter nil
+         ggtags-mode-line-project-name nil
+         ggtags-oversize-limit (* 30 1024 1024)))
+ #+END_SRC
+
+*** Java
+
+#+BEGIN_SRC emacs-lisp
+(use-package lsp-java 
+  :config 
+    (add-hook 'java-mode-hook 'lsp)
+    (setq lsp-java-java-path "/opt/oracle-jdk-bin-11.0.7/bin/java"))
+(use-package dap-mode :after lsp-mode :config (dap-auto-configure-mode))
+(use-package dap-java :ensure nil)
+;(use-package helm-lsp
+;  :after
+;    (helm-projectile))
+(use-package lsp-treemacs)
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+(defcustom groupId "com.mycompany.app"
+"Default groupId"
+:type 'string
+:group 'java-project)
+
+(defcustom artifactId "my-app"
+"Default artifactId"
+:type 'string
+:group 'java-project)
+
+(defcustom archetypeArtifactId "maven-archetype-quickstart"
+"Default archetypeArtifactId"
+:type 'string
+:group 'java-project)
+
+(defcustom archetypeVersion "1.4"
+"Default archetypeVersion"
+:type 'string
+:group 'java-project)
+
+(defcustom mvn-executable "mvn"
+"Default mvm executable"
+:type 'string
+:group 'java-project)
+
+(setq mvn-parameters 
+  (concat "-B archetype:generate" " -DgroupId=" groupId " -DartifactId=" artifactId " -DarchetypeArtifactId=" archetypeArtifactId " -DarchetypeVersion=" archetypeVersion))
+
+(defun java-create-project ()
+ (shell-command (concat mvn-executable " " mvn-parameters)))
+;"mvn -B archetype:generate -DgroupId=com.mycompany.app -DartifactId=my-app -DarchetypeArtifactId=maven-archetype-quickstart -DarchetypeVersion=1.4"))
+#+END_SRC
+
+** Org-mode
+*** Основные настройки
+
+#+begin_src emacs-lisp
+(defun my-org-mode-basic-config ()
+  ;; По умолчанию таски длятся 1 час
+  (setq org-agenda-default-appointment-duration 60)
+  ;; SRC-блоки должны выглядеть максимально похоже на исходные режимы редактирования для этих языков
+  (setq org-src-fontify-natively t)
+  ;; Кнопка tab в SRC-блоках имеет то же поведение, что и в исходных режимах языков
+  (setq org-src-tab-acts-natively t)
+  ;; Не надо никуда смещать SRC-блоки
+  (setq org-edit-src-content-indentation 0)
+  ;; Ругаться, если пытаемся редактировать невидимый (напр., схлопнутый) текст
+  (setq org-catch-invisible-edits 'error)
+  ;; Хочу видеть дату+время, когда пункт был закрыт (CLOSED)
+  (setq org-log-done 'time)
+  ;; Задаем виды статусов для задач
+  (setq org-todo-keywords
+        '((sequence "TODO(t)" "WAIT(w)" "VERIFY(v)" "DELEGATED(D@)" "|" "DONE(d)" "CANCELED(c@)")))
+  ;; Спрятать лог изменения статусов в LOGGER
+  (setq org-log-into-drawer t)
+  ;; Разшить refile в мои org-файлы, в поддеревья до глубины 2
+  (setq org-refile-targets '((org-agenda-files :maxlevel . 2)))
+  ;; При refile показывать также имя файла
+  (setq org-refile-use-outline-path 'file)
+  ;; Люблю выделять по shift-стрелочки, даже в org-mode
+  (setq org-support-shift-select t)
+
+  ;; Угадывать mode SRC-блоков по названию режимов
+  (add-to-list 'org-src-lang-modes '("conf" . conf))
+  (add-to-list 'org-src-lang-modes '("ini" . conf))
+  (add-to-list 'org-src-lang-modes '("vim" . vimrc))
+
+  ;; Подключить эти модули
+  (add-to-list 'org-modules 'org-id)
+  (add-to-list 'org-modules 'org-mouse)
+  (add-to-list 'org-modules 'org-attach-screenshot)
+
+  ;; Разукрашиваем статусы
+  (setq org-todo-keyword-faces
+        '(("WAIT" . (:foreground "#ff8040" :weight bold))
+          ("VERIFY" . (:foreground "#afaf00" :weight bold))
+          ("CANCELED" . (:foreground "#006000" :weight bold))))
+
+  ;; Подкрасить слова TODO красным в org-файлах
+  (face-spec-set 'org-todo '((t :foreground "red")))
+
+  ;; Мне не нравятся большие заголовки 1-го уровня в теме leuven
+  (face-spec-set 'org-level-1 '((t :height 1.1)))
+  )
+#+end_src
+
+*** Подключение 
+
+#+BEGIN_SRC emacs-lisp
+(require 'org-protocol)
+(use-package org 
+  :ensure nil
+  :hook ((org-mode . turn-on-flyspell)
+         ;; автоматом считывать изменения с диска
+         (org-mode . turn-on-auto-revert-mode)
+         ;; автосохранение для org-буферов
+         (auto-save . org-save-all-org-buffers)
+         ;; автоперенос строк по умолчанию
+         (org-mode . auto-fill-mode)) 
+  :bind (:map my-bindings-map
+              ("C-c l" . org-store-link))
+  :config
+  (my-org-mode-basic-config))
+#+END_SRC
+
+*** Шифрование
+
+#+BEGIN_SRC emacs-lisp
+(use-package pinentry)
+(pinentry-start)
+#+END_SRC
+
+** org-brain
+
+#+BEGIN_SRC emacs-lisp
+(use-package org-brain
+  :init
+  (setq org-brain-path "~/Documents/org/org-brain")
+  :config
+  (bind-key "C-c b" 'org-brain-prefix-map org-mode-map)
+  (setq org-id-locations-file "~/Documents/org/org-brain/.org-id-locations")
+  )
+;(use-package org-brain :ensure t
+;  :after
+;  (org-capture)
+;  :init
+;  (setq org-brain-path "~/Documents/org/org-brain")
+;  ;; For Evil users
+;  (with-eval-after-load 'evil
+;    (evil-set-initial-state 'org-brain-visualize-mode 'emacs))
+;  :config
+;  (bind-key "C-c b" 'org-brain-prefix-map org-mode-map)
+;  (setq org-id-track-globally t)
+;  (setq org-id-locations-file "~/Documents/org/org-brain/.org-id-locations")
+;  (add-hook 'before-save-hook #'org-brain-ensure-ids-in-buffer)
+;  (push '("b" "Brain" plain (function org-brain-goto-end)
+;          "* %i%?" :empty-lines 1)
+;        org-capture-templates)
+;  (setq org-brain-visualize-default-choices 'all)
+;  (setq org-brain-title-max-length 12)
+;  (setq org-brain-include-file-entries nil
+;        org-brain-file-entries-use-title nil))
+
+;; Allows you to edit entries directly from org-brain-visualize
+;(use-package polymode
+;  :config
+;  (add-hook 'org-brain-visualize-mode-hook #'org-brain-polymode))
+#+END_SRC
+
+** Org agenda
+
+*** Дополнительные функции
+
+ Перечитать известные файлы с диска:
+
+ #+BEGIN_SRC emacs-lisp
+ (setq my-org-last-reload (current-time))
+
+ (defun my-org-reload-from-disk (&optional event)
+   (interactive)
+   ;; релоадить не чаще раза в 3 секунды
+   (if (time-less-p (time-add my-org-last-reload 3) (current-time))
+           (progn
+                 (setq my-org-last-reload (current-time))
+                 (ignore-errors
+                   (org-agenda-redo-all)))))
+ #+END_SRC
+
+ Заполнить список файлов автоматом, согласно моим правилам. Это делается по крону, через run-with-timer.
+
+ #+BEGIN_SRC emacs-lisp
+ (defvar my-org-root-path "~/Documents/org" "Path to root directory with org files")
+ (defvar my-org-files-regexp "[.]org$" "Regexp to match org files")
+
+ (defun my-org-fill-files-list (&optional EXHAUSTIVE)
+   (setq org-agenda-files
+         (seq-remove
+          (lambda (file) (string-match "[.]#" file))
+          (directory-files-recursively my-org-root-path my-org-files-regexp)))
+   ;; после пересоздания списков файлов, неплохо бы перечитать их с диска
+   (my-org-reload-from-disk))
+   ;; (my-org-fill-inotify-handlers))
+ #+END_SRC
+
+ Обновить буфер агенды:
+
+ #+BEGIN_SRC emacs-lisp
+ (defun my-org-agenda-redo ()
+   (ignore-errors
+     (with-current-buffer "*Org Agenda*"
+       (org-agenda-maybe-redo))))
+ #+END_SRC
+
+*** Базовые настройки agenda
+
+ #+BEGIN_SRC emacs-lisp
+ (defun my-agenda-mode-setup ()
+   (hl-line-mode))
+
+ (defun my-org-agenda-basic-config ()
+   ;; Дни рожденния в BBDB брать из поля birthday
+   (setq org-bbdb-anniversary-field 'birthday)
+   ;; Не показывать DONE в агенде
+   (setq org-agenda-skip-scheduled-if-done 't)
+
+   ;; Настройки по умолчанию в теме leuven мне в этом месте не нравятся
+   (face-spec-set 'org-agenda-structure '((t :height 1.17)))
+   (face-spec-set 'org-agenda-date-today '((t :height 1.1)))
+   (face-spec-set 'org-agenda-date '((t :height 1.1)))
+   (face-spec-set 'org-agenda-date-weekend '((t :height 1.1))))
+ #+END_SRC
+
+*** Отложенные таски
+
+ Иногда хочется спрятать таск из агенды на определенное время, чтобы глаза мои его не видели.
+
+ Вешаем в agenda-буфере на кнопку C-d функционал откладывания таска:
+
+ #+BEGIN_SRC emacs-lisp
+ (defun my-agenda-delayed-tasks-setup ()
+   (defun my-org-agenda-delay-task ()
+     (interactive)
+     (org-agenda-check-no-diary)
+     (let* ((hdmarker (or (org-get-at-bol 'org-hd-marker)
+                          (org-agenda-error)))
+            (buffer (marker-buffer hdmarker))
+            (pos (marker-position hdmarker))
+            (inhibit-read-only t)
+            newhead)
+       (org-with-remote-undo buffer
+         (with-current-buffer buffer
+           (widen)
+           (goto-char pos)
+           (org-show-context 'agenda)
+           (let ((delay (org-read-date 't 'nil 'nil "Отложить до" 'nil
+                                       (format-time-string "%H:%M" (time-add (current-time) 3600)))))
+             (org-set-property "DELAYED_TILL" delay))))
+       (org-agenda-redo-all)))
+   (defun my-org-agenda-delay-task-setup-hook ()
+     (local-set-key (kbd "\C-c d") 'my-org-agenda-delay-task))
+   (add-hook 'org-agenda-mode-hook 'my-org-agenda-delay-task-setup-hook)
+ )
+ #+END_SRC
+
+ Функция, реализующая пропуск отложенных тасков в agenda-буфере:
+
+ #+BEGIN_SRC emacs-lisp
+ (defun my-org-agenda-skip-delayed ()
+   (let ((now (format-time-string "%Y-%m-%d %H:%M" (time-add (current-time) 120)))
+         (delayed-till (org-read-date t nil (or (org-entry-get nil "DELAYED_TILL") "") nil))
+         (subtree-end (save-excursion (org-end-of-subtree t))))
+       (if (string> delayed-till now) subtree-end nil)))
+
+ #+END_SRC
+
+*** Горячие кнопки
+
+ Конфигурация команд agenda:
+
+ #+BEGIN_SRC emacs-lisp
+ (defun my-org-agenda-commands-config ()
+   (setq org-agenda-custom-commands
+       '(("d" . "Сегодня")
+         ("dd" agenda "Сегодня, все записи"
+          ((org-agenda-span 'day)
+           (org-agenda-overriding-header "Сегодня, все записи")))
+         ("da" agenda "Сегодня, без отложенных"
+          ((org-agenda-span 'day)
+           (org-agenda-skip-function 'my-org-agenda-skip-delayed)
+           (org-agenda-overriding-header "Сегодня, только активные"))))))
+ #+END_SRC
+
+*** Подключение
+
+ #+BEGIN_SRC emacs-lisp
+ (use-package
+     org-agenda
+     :ensure nil
+     :after (org org-element)
+         :hook (org-agenda-mode . my-agenda-mode-setup)
+         :bind (:map my-bindings-map
+                                 ("C-c a" . org-agenda))
+         :config
+         (my-org-agenda-basic-config)
+         (my-agenda-delayed-tasks-setup)
+         (my-org-agenda-commands-config)
+         (my-org-fill-files-list)
+         ;; раз в 10 минут заново составлять список файлов, на случай появления новых
+         (run-with-timer 0 600 'my-org-fill-files-list)
+         ;;
+         (run-with-idle-timer 120 120 'my-org-agenda-redo)
+         (my-load-org-config "local/org-agenda.org"))
+ #+END_SRC
+
+*** Прочее
+
+ Автосохранение перед выходом:
+
+ #+BEGIN_SRC emacs-lisp
+ (advice-add 'org-agenda-quit :before 'org-save-all-org-buffers)
+ #+END_SRC
+
+**** Архивирование всех DONE тасков в текущем буфере
+
+ #+BEGIN_SRC emacs-lisp
+ (defun my-org-archive-done-tasks ()
+   "Archive all DONE tasks in current buffer"
+   (interactive)
+   (org-map-entries
+    (lambda ()
+      (org-archive-subtree)
+      (setq org-map-continue-from (outline-previous-heading)))
+    "/DONE" 'file))
+ #+END_SRC
+
+**** Клонировать текущий heading со всеми подзаголовками, со сдвигом всех дат внути
+
+#+BEGIN_SRC emacs-lisp
+(defun my-org-clone-to-date ()
+  "Clone current subtree into specified file with all dates shifted to the same period."
+  (interactive)
+  (let* ((title (nth 4 (org-heading-components)))
+         (orig-date (org-time-string-to-absolute (org-entry-get nil "SCHEDULED")))
+         (dest-date (org-time-string-to-absolute
+                     (org-read-date nil nil nil (format "Дата для '%s'" title))))
+         (offset (format "+%id" (- dest-date orig-date))))
+    (org-copy-subtree)
+    (with-temp-buffer
+      (org-mode)
+      (org-paste-subtree)
+      (org-clone-subtree-with-time-shift 1 offset)
+      (org-forward-element)
+      (org-refile))))
+#+END_SRC
+
+** Org export
+
+*** TODO Confluence
+
+#+BEGIN_SRC emacs-lisp
+;(use-package
+;  org
+;  :defer t
+;  :config
+;  (require 'ox-confluence))
+#+END_SRC
+
+*** LaTeX
+
+#+BEGIN_SRC emacs-lisp
+(use-package
+  org
+  :defer t
+  :config
+  ;; Какие \usepackage прописывать в LaTeX по умолчанию
+  (setq org-latex-default-packages-alist
+        '(("utf8" "inputenc" t ("pdflatex"))
+          ("T2A" "fontenc" t ("pdflatex"))
+          ("russian" "babel" t)
+          ("" "cmap" t)
+          ("" "graphicx" t)
+          ("" "grffile" t)
+          ("" "longtable" nil)
+          ("" "wrapfig" nil)
+          ("" "rotating" nil)
+          ("normalem" "ulem" t)
+          ("" "amsmath" t)
+          ("" "textcomp" t)
+          ("" "tabularx" t)
+          ("" "amssymb" t)
+          ("" "listings" t)
+          ("" "capt-of" nil)
+          ("" "hyperref" nil)))
+  ;; Файлы с этими расширениями считаются временными при экспорте и будут удалены
+  (setq org-latex-logfiles-extensions
+        '("aux" "bcf" "blg" "fdb_latexmk" "fls" "figlist" "idx" "log" "nav" "out" "ptc" "run.xml" "snm" "toc" "vrb" "xdv" "tex")))
+#+END_SRC
+
+** Org babel (исполняемые кусочки кода в org-файлах)
+
+Org babel режимы, которые надо поддержать
+
+#+BEGIN_SRC emacs-lisp
+(defun my-org-confirm-babel-evaluate (lang body)
+  (not (or
+        (string= lang "latex")
+        (string= lang "dot")
+        (string= lang "graphviz")
+        (string= lang "gnuplot")
+        (string= lang "plantuml"))))
+
+(use-package ob-http)
+
+(use-package
+  babel
+  :ensure t
+  ;; :after
+  ;; (org ob-ruby ob-perl ob-shell ob-sql ob-plantuml ob-gnuplot ob-coq ob-python ob-ocaml ob-http)
+  :config
+  ;; Не просить подтверждение для запуска SRC-блоков
+  (setq org-confirm-babel-evaluate 'my-org-confirm-babel-evaluate)
+  ;; Загрузить языки
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((perl . t)
+     (ruby . t)
+     (shell . t)
+     (latex . t)
+     (org . t)
+     (dot . t)
+     (http . t)
+     (sql . t)
+     (coq . t)
+     (ocaml . t)
+     (plantuml . t)
+     (gnuplot 't)
+     (emacs-lisp . t))))
+#+END_SRC
+
+** Org capture (шаблоны записей)
+
+#+BEGIN_SRC emacs-lisp
+(defvar my-org-file-main-inbox "~/Documents/org/personal/general-TODO.org" "Главный файл для инбокса задач")
+(defvar my-org-file-web-bookmarks "~/Documents/org/personal/web-bookmarks.org" "Путь до файла, где хранятся веб-закладки")
+
+(use-package
+  org-capture
+  :ensure nil
+  :after (org)
+  :bind (:map my-bindings-map
+              ("C-c c" . org-capture))
+  :config
+  ;; Главная кнопка добавления задачи
+  (add-to-list
+   'org-capture-templates
+   '("g" "Общий TODO" entry (file my-org-file-main-inbox)
+     "* TODO %?\nSCHEDULED: %t"))
+  ;; Заметки из браузера тоже сохраняем в главный инбокс
+  (add-to-list
+   'org-capture-templates
+   '("Pm" "(Protocol bookmark)" entry (file+headline my-org-file-main-inbox "Сохранено из браузера")
+     "* TODO Взято из веба: [[%:link][%:description]]\n  SCHEDULED: %^T\n\nДобавлено:
+%U\n\n#+BEGIN_QUOTE\n%i\n#+END_QUOTE\n\n%?"))
+  ;; Закладки браузера храним в указанном org-файле, в дереве годов/месяцев/дат
+  (add-to-list
+   'org-capture-templates
+   '("Pb" "(Protocol bookmark)" entry (file+olp+datetree my-org-file-web-bookmarks)
+     "* Закладка %U : [[%:link][%:description]]\n%?\n"))
+  ;; Подгрузить приватный локальный конфиг для конкретного хоста
+  (my-load-org-config "local/org-capture.org"))
+ #+END_SRC
+
+*** Супер-шаблоны
+
+ Refile всего поддерева под курсором с подстановкой дат по заданному смещению. Для корневого поддерева должно
+быть задано SCHEDULED.
+
+ #+BEGIN_SRC emacs-lisp
+ (defun my-org-clone-to-date ()
+   "Clone current subtree into specified file with all dates shifted to the same period."
+   (interactive)
+   (let* ((title (nth 4 (org-heading-components)))
+          (orig-date (org-time-string-to-absolute (org-entry-get nil "SCHEDULED")))
+          (dest-date (org-time-string-to-absolute
+                      (org-read-date nil nil nil (format "Дата для '%s'" title))))
+          (offset (format "+%id" (- dest-date orig-date))))
+     (org-copy-subtree)
+     (with-temp-buffer
+       (org-mode)
+       (org-paste-subtree)
+       (org-clone-subtree-with-time-shift 1 offset)
+       (org-forward-element)
+       (org-refile))))
+ #+END_SRC
+
+**** Как использую
+
+ У меня есть шаблоны мероприятий, где описана вся последовательность действий, которые надо совершить при
+подготовке. В верхнем уровне указан
+ SCHEDULED, указывающий, когда мероприятие должно состояться. При выполнении внутри корневого элемента этой
+функции, создается копия всей
+ структуры в указанный файл со смещением дат относительно указанной. Например:
+
+ #+BEGIN_SRC org
+ ,* Слёт Сплава [0%]                                                    :Сплав:
+   DEADLINE: <2019-05-25 Сб -3d> SCHEDULED: <2019-05-25 Сб>
+   :PROPERTIES:
+   :COOKIE_DATA: todo recursive
+   :END:
+
+ Ехать до станции Подосинки с Казанского вокзала
+ Электричка отходит в ..., стоит ... руб
+
+ Расписание автобусов от Подосинок: ...
+
+ Расписание автобусов от лагеря: ...
+
+ ,** TODO Список вещей
+    SCHEDULED: <2019-05-22 Ср>
+
+ 2 баллона газа
+ Продукты
+ Усы
+ Каска
+ ...
+
+ ,** TODO Узнать расписание электричек, запланировать
+    SCHEDULED: <2019-05-22 Ср>
+ ,** TODO Узнать расписание автобусов в [[https://vk.com/splavclub][группе]].
+    SCHEDULED: <2019-05-22 Ср>
+ ,** TODO Карта на GPS
+    SCHEDULED: <2019-05-21 Вт>
+
+ В архиве карт на GPS лежит splav.img
+
+ ,** TODO Снять деньги
+    SCHEDULED: <2019-05-23 Чт>
+
+ ,** TODO Продумать раскладку по еде
+    SCHEDULED: <2019-05-21 Вт>
+
+ #+END_SRC
+
+ *Важно*: фича реализована через функицю ~org-clone-subtree-with-time-shift~, и она слишком умно
+интерпретирует repeated tasks. Поэтому если
+ в плане подготовки какой-то таск надо повторять (пример: перед поездкой в горы трижды в неделю запланировать
+бег), то таск надо
+ раскопировать вручную, заранее расставив даты со смещением.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+** Обмен сообщениями
+
+#+BEGIN_SRC emacs-lisp
+(use-package telega
+  :after
+   (org)
+  :config
+    (telega-notifications-mode 1)
+    (show-paren-mode 0))
+#+END_SRC
+
