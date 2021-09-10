@@ -1,0 +1,70 @@
+* Менеджер пакетов
+** Источники пакетов и их приоритеты
+#+begin_src emacs-lisp
+  (add-to-list 'package-archives '("melpa-stable" . "https://stable.melpa.org/packages/"))
+  (add-to-list 'package-archives '("melpa"        . "https://melpa.org/packages/"))
+  (add-to-list 'package-archives '("org"          . "https://orgmode.org/elpa/"))
+  (setf (cdr (assoc "gnu" package-archives)) "https://elpa.gnu.org/packages/")
+
+  (setq package-archive-priorities
+	'(("melpa-stable" . 5)
+	  ("gnu" . 5)
+	  ("melpa" . 10)))
+  (setq package-enable-at-startup nil)
+#+end_src
+
+** Установка и запуск менеджера пакетов use-package
+#+begin_src emacs-lisp
+  (unless (package-installed-p 'use-package)
+    (message "EMACS install use-package.el")
+    (package-refresh-contents)
+    (package-install 'use-package))
+#+end_src
+
+#+begin_src emacs-lisp
+  (require 'use-package)
+  (setq use-package-always-ensure t)
+#+end_src
+
+* Настройка org-mode
+#+begin_src emacs-lisp
+  (use-package org)
+#+end_src
+
+* Организация базы знаний
+#+begin_src emacs-lisp
+  (use-package org-roam
+    :custom
+    (org-roam-directory (file-truename "~/org/org-roam/"))
+    :bind (("C-c n l" . org-roam-buffer-toggle)
+	   ("C-c n f" . org-roam-node-find)
+	   ("C-c n g" . org-roam-graph)
+	   ("C-c n i" . org-roam-node-insert)
+	   ("C-c n c" . org-roam-capture)
+	   ;; Dailies
+	   ("C-c n j" . org-roam-dailies-capture-today))
+    :config
+    (org-roam-db-autosync-mode)
+    ;; If using org-roam-protocol
+    (require 'org-roam-protocol)
+    :init
+    (setq org-roam-v2-ack t)
+    )
+#+end_src  
+
+* Подключение сниппетов
+#+begin_src emacs-lisp
+  (use-package yasnippet
+    :commands
+    (yas-minor-mode)
+    :after
+    (org yasnippet-classic-snippets)
+    :hook
+    ((prog-mode org-mode) . yas-minor-mode)
+    :config
+    (add-to-list 'yas-snippet-dirs (expand-file-name "~/.emacs.d/public/snippets"))
+    (yas-reload-all))
+
+  (use-package yasnippet-classic-snippets)
+#+end_src
+
