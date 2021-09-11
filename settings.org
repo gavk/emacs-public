@@ -31,9 +31,11 @@
   (use-package org
     :bind (("C-c l" . org-store-link)
 	   ("C-c a" . org-agenda))
-  :config
-  (setq org-log-done t)
-  )
+    :config
+    (setq org-log-done t))
+
+    (require 'org-id)
+    (setq org-id-link-to-org-use-id t)
 #+end_src
 
 * Организация базы знаний
@@ -46,6 +48,7 @@
 	   ("C-c n g" . org-roam-graph)
 	   ("C-c n i" . org-roam-node-insert)
 	   ("C-c n c" . org-roam-capture)
+	   ("C-c n v" . org-roam-node-visit)
 	   ;; Dailies
 	   ("C-c n j" . org-roam-dailies-capture-today))
     :config
@@ -58,23 +61,54 @@
 
   (use-package org-roam-bibtex
     :after (org-roam)
-    :config (require 'org-ref)
+    :config (use-package org-ref
+	    :config
+	    (setq reftex-default-bibliography '("~/org/bibliography/references.bib"))
+	    (setq org-ref-bibliography-notes "~/org/bibliography/notes.org"
+		  org-ref-default-bibliography '("~/org/bibliography/references.bib")
+		  org-ref-pdf-directory "~/org/bibliography/bibtex-pdfs/")
+	    )
+    (setq bibtex-completion-bibliography "~/org/bibliography/references.bib"
+	  bibtex-completion-library-path "~/org/bibliography/bibtex-pdfs"
+	  bibtex-completion-notes-path "~/org/bibliography/bibtex-notes")
+
+    ;; open pdf with system pdf viewer (works on mac)
+    (setq bibtex-completion-pdf-open-function
+	  (lambda (fpath)
+	    (start-process "open" "*open*" "open" fpath)))
     )
 #+end_src  
 
 * Подключение сниппетов
-#+begin_src emacs-lisp
-  (use-package yasnippet
-    :commands
-    (yas-minor-mode)
-    :after
-    (org yasnippet-classic-snippets)
-    :hook
-    ((prog-mode org-mode) . yas-minor-mode)
-    :config
-    (add-to-list 'yas-snippet-dirs (expand-file-name "~/.emacs.d/public/snippets"))
-    (yas-reload-all))
+  #+begin_src emacs-lisp
+    (use-package yasnippet
+      :commands
+      (yas-minor-mode)
+      :after
+      (org yasnippet-classic-snippets)
+      :hook
+      ((prog-mode org-mode) . yas-minor-mode)
+      :config
+      (add-to-list 'yas-snippet-dirs (expand-file-name "~/.emacs.d/public/snippets"))
+      (yas-reload-all))
 
-  (use-package yasnippet-classic-snippets)
-#+end_src
+    (use-package yasnippet-classic-snippets)
+ #+end_src
+
+* Отключение сохранения резервных копий
+  #+begin_src emacs-lisp
+    (setq make-backup-files nil)
+  #+end_src
+
+* Перенос строк по словам
+  #+begin_src emacs-lisp
+    (setq word-wrap t)
+    (global-visual-line-mode t)
+  #+end_src
+
+* Очистка init.el от специфичных настроек
+  #+begin_src emacs-lisp
+    (setq custom-file "~/.emacs.d/private/custom.el)
+    (load custom-file)
+  #+end_src
 
