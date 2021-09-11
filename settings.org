@@ -28,7 +28,12 @@
 
 * Настройка org-mode
 #+begin_src emacs-lisp
-  (use-package org)
+  (use-package org
+    :bind (("C-c l" . org-store-link)
+	   ("C-c a" . org-agenda))
+  :config
+  (setq org-log-done t)
+  )
 #+end_src
 
 * Организация базы знаний
@@ -49,6 +54,11 @@
     (require 'org-roam-protocol)
     :init
     (setq org-roam-v2-ack t)
+    )
+
+  (use-package org-roam-bibtex
+    :after (org-roam)
+    :config (require 'org-ref)
     )
 #+end_src  
 
